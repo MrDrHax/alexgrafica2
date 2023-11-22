@@ -47,10 +47,7 @@ def createBoard(data: dict) -> Board.SimulatedBoard:
     board.addColor("Destination", (255, 255, 0))
 
     # add board variables
-    obstacles = int(data["board_height"] * data["board_width"] * data["obstacles"])
-
-    board.specialValues["obstacles"] = obstacles
-    board.specialValues["FinishState"] = "None"
+    board.specialValues["map"] = data["map"]
 
     # collisions
     # car to stoplight

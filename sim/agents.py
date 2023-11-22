@@ -97,14 +97,14 @@ class Building(Agents.StaticAgent):
     def __init__(self, board: Board, pos: Pos):
         super().__init__(board, pos, "Building", 0, False)
 
-class Stoplight(Agents.simulatedAgent):
+class Stoplight(Agents.SimulatedAgent):
     def __init__(self, board: Board, pos: Pos):
         super().__init__(board, pos, "Stoplight_go", 2, False)
 
     def step(self):
         pass
 
-class Car(Agents.simulatedAgent):
+class Car(Agents.SimulatedAgent):
     destination: Destination
     def __init__(self, board: Board):
         choices = [

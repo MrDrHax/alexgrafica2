@@ -6,9 +6,8 @@ board_height = 21
 fps = 10
 
 data = {
-    "board_width": board_width,
-    "board_height": board_height,
-    "drawer": True
+    "drawer": True,
+    "map": "ejemplo/2022_base.txt",
 }
 
 board, drawer = LocalBoard.createBoard(data)
