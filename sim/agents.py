@@ -78,15 +78,48 @@ class Road(Agents.SimulatedAgent):
                 if option.type == "Road":
                     self.roads.append(option)
 
-    def cookRoutes(self):
-        # TODO @Alex-Barr0n agrega aquí tu A*
-        # has que valla a cualquier Destination (para que no tenga que calcular el a* cada vez que se mueva) 
-        # puedes usar el destinationList e iterar en el
-        pass 
+    def cookRoutes(graph, start, destination, path_empty):
+
+        future_cells = []
+        future_cells.push(start, 0)
+        past_cells = {start: None}
+        cost_so_far = {start: 0}
+
+        while not future_cells.empty():
+            current = future_cells.pop()
+            
+            if current == destination:
+                break
+
+            for next in graph.get_neighborhood(current, moore=False, include_center=False):
+                if not path_empty(current, next):  # If the path is not clear,
+                    continue
+
+                new_cost = cost_so_far[current] + 1
+
+                if next not in cost_so_far or new_cost < cost_so_far[next]:
+                    cost_so_far[next] = new_cost
+                    priority = new_cost + (abs(destination[0] - next[0]) + abs(destination[1] - next[1]))
+                    future_cells.push(next, priority)
+                    past_cells[next] = current
+
+        track = {}
+        actual = destination
+        while actual != start:
+            if actual in past_cells:
+                last_cell = past_cells[actual]
+                track[last_cell] = actual
+                actual = last_cell
+            else:
+                return{}
+            
+        return track
+
 
     def getRoute(self, destination: 'Destination') -> list[Pos]:
         # TODO @Alex-Barr0n agrega aquí la lectura de tu A*
-        pass
+        for d in destinationsList:
+            self.cookRoutes(self.board, self.pos, d.pos, self.path_empty)
 
 class Destination(Agents.StaticAgent):
     def __init__(self, board: Board, pos: Pos):
