@@ -276,6 +276,10 @@ class Car(Agents.SimulatedAgent):
 
     path: list[Pos] = []
 
+    lastPos: Pos
+
+    desperation: int = 0
+
     def __init__(self, board: Board):
         choices = [
             # corners of the map
@@ -285,22 +289,42 @@ class Car(Agents.SimulatedAgent):
             Pos(board.getWidth() - 1, board.getHeight() - 1)
         ]
         spawnIn = random.choice(choices)
+
+        for i in range(4):
+            spawnIn = random.choice(choices)
+            if board.agent_get(spawnIn, 1, False) is None:
+                break
+            choices.remove(spawnIn)
+
         super().__init__(board, spawnIn, "Car", 1, False)
 
         self.destination = random.choice(destinationsList)
 
         self.path = self.board.agent_get(self.pos, 0, False).getRoute(self.destination)
 
+        self.lastPos = self.pos
+
+        self.desperation = 0
+
     def step(self):
         if isinstance(self.board.agent_get(self.pos, 0, False), Destination):
             self.kill()
             return
 
-        if len(self.path) == 0:
+        if self.lastPos != self.pos: # if this runs, then it means someone got in their way
+            self.lastPos = self.pos
             self.path = self.board.agent_get(self.pos, 0, False).getRoute(self.destination)
 
-            if len(self.path) == 0:
+        if len(self.path) == 0 or not (self.pos.x - 1 <= self.path[0].x <= self.pos.x + 1 and self.pos.y - 1 <= self.path[0].y <= self.pos.y + 1):
+            self.path = self.board.agent_get(self.pos, 0, False).getRoute(self.destination)
+
+            if len(self.path) == 0 or not (self.pos.x - 1 <= self.path[0].x <= self.pos.x + 1 and self.pos.y - 1 <= self.path[0].y <= self.pos.y + 1):
                 self.path.append(random.choice(self.board.agent_get(self.pos, 0, False).roads).pos)
+
+        if self.desperation > 3:
+            self.path = [random.choice(self.board.agent_get(self.pos, 0, False).roads).pos] # just move brute force
+
+        self.desperation += 1
 
         nextPos = self.path[0]
 
@@ -311,4 +335,6 @@ class Car(Agents.SimulatedAgent):
 
         if self.board.agent_get(nextPos, 1, False) is None:
             self.pos = self.path.pop(0)
+            self.lastPos = nextPos
+            self.desperation = 0
             

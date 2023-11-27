@@ -53,7 +53,7 @@ def createBoard(data: dict) -> Board.SimulatedBoard:
 
     # add board variables
     board.specialValues["map"] = data["map"]
-    board.specialValues["spawn_rate"] = 5
+    board.specialValues["spawn_rate"] = 1
 
     # collisions
     # car to stoplight
