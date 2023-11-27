@@ -2,7 +2,11 @@ from fastautomata import Board, Agents, fastautomata_clib
 from fastautomata.LocalDraw import LocalDraw
 from fastautomata.ClassTypes import Pos
 import agents as LocalAgents
-import random
+import random, hashlib
+
+from jsonChache import JsonSave
+
+hash = ""
 
 def createBoard(data: dict) -> Board.SimulatedBoard:
     '''
@@ -17,10 +21,13 @@ def createBoard(data: dict) -> Board.SimulatedBoard:
         Board.SimulatedBoard: The newly created board.
     '''
 
+    global hash
+
     with open(data["map"], "r") as f:
         map = f.readlines()
         data["board_width"] = len(map[0])
         data["board_height"] = len(map)
+        hash = hashlib.md5(str(map).encode()).hexdigest()
 
     board = Board.SimulatedBoard(data["board_width"] - 1, data["board_height"], 3)
 
@@ -68,7 +75,7 @@ def addAgents(board: Board.SimulatedBoard):
     '''
     Add the agents to the board.
     '''
-
+    global hash
     with open(board.specialValues["map"], "r") as f:
         mapB = f.readlines()
 
@@ -90,18 +97,24 @@ def addAgents(board: Board.SimulatedBoard):
     for road in LocalAgents.roadsList:
         road.calculateRoads()
 
+    cachedRoutes = JsonSave(f"cache/{hash}.json")
+
     print("Cooking routes... This might take a while.")
     print("calculating \r(x, y)", end="")
     for road in LocalAgents.roadsList:
         print(f"\r({road.pos.x}, {road.pos.y})..........", end="")
-        road.cookRoutes()
+        road.cookRoutes(cachedRoutes)
+
+    print("\nDone! Saving routes...")
+
+    cachedRoutes.save()
 
 count = 0
 
 def spawnCar(board: Board.SimulatedBoard):
     global count
     count += 1
-    if count > 10:
+    if count > 50:
         try:
             LocalAgents.Car(board)
             count = 0

@@ -5,6 +5,7 @@ from fastautomata.ClassTypes import Pos
 from fastautomata.fastautomata_clib import BaseAgent
 import random
 from enum import Enum
+from jsonChache import JsonSave
 
 # TODO hacer que todos los agentes se pongan juntos de un jalon
 
@@ -116,11 +117,15 @@ class Road(Agents.SimulatedAgent):
                     # FIXME: do not allow to go to a road that is not in the flow (it likes to get into places it shouldn't)
                     self.roads.append(option)
 
-    def cookRoutes(self):
+    def cookRoutes(self, cache: JsonSave):
 
         start = self
 
         for destination in destinationsList:
+            cachedRoute = cache.getRoute(self.pos, destination.pos)
+            if cachedRoute is not None:
+                self.routes[destination.pos.toString()] = cachedRoute
+                continue
 
             # Future cells is a priority queue (road, priority)
             future_cells: list[tuple[Road, int]] = []
@@ -158,6 +163,8 @@ class Road(Agents.SimulatedAgent):
 
             # return track
             self.routes[destination.pos.toString()] = route
+
+            cache.addRoute(self.pos, destination.pos, route)
             
     def getRoute(self, destination: 'Destination') -> list[Pos]:
         if isinstance(destination, Destination):
