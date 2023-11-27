@@ -7,7 +7,7 @@ fps = 10
 
 data = {
     "drawer": True,
-    "map": "ejemplo/2022_base.txt",
+    "map": "../ejemplo/2022_base.txt",
 }
 
 board, drawer = LocalBoard.createBoard(data)

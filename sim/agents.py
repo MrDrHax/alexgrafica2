@@ -32,94 +32,138 @@ roadsList: list['Road'] = []
 
 class Road(Agents.SimulatedAgent):
     roads: list['Road'] = []
-    direction: Direction
+    direction: str
 
-    def __init__(self, board: Board, pos: Pos, direction: Direction):
+    routes: dict[Pos, list[Pos]]
+
+    def __init__(self, board: Board, pos: Pos, direction: str):
         super().__init__(board, pos, "Road", 0, False)
         self.direction = direction
         roadsList.append(self)
+        self.roads = []
+        self.routes = {}
     
     def step(self) -> None:
         pass
 
     def calculateRoads(self):
-        neighbors = self.get_neighbors(1, False)
+        neighbors : list[Road] = self.get_neighbors(1, False, -1)
         options: list[BaseAgent] = []
 
         match self.direction:
             # si queremos agregar en un futuro que no solo sea diagonal... se puede aqui
-            case Direction.UP:
+            case Direction.UP.value:
                 options = [
-                    neighbors[Neighbors.Top_Left],
-                    neighbors[Neighbors.Top_Center],
-                    neighbors[Neighbors.Top_Right],
+                    neighbors[Neighbors.Top_Left.value],
+                    neighbors[Neighbors.Top_Center.value],
+                    neighbors[Neighbors.Top_Right.value],
                 ]
-            case Direction.LEFT:
+            case Direction.LEFT.value:
                 options = [
-                    neighbors[Neighbors.Top_Left],
-                    neighbors[Neighbors.Middle_Left],
-                    neighbors[Neighbors.Bottom_Left],
+                    neighbors[Neighbors.Top_Left.value],
+                    neighbors[Neighbors.Middle_Left.value],
+                    neighbors[Neighbors.Bottom_Left.value],
                 ]
-            case Direction.RIGHT:
+            case Direction.RIGHT.value:
                 options = [
-                    neighbors[Neighbors.Top_Right],
-                    neighbors[Neighbors.Middle_Right],
-                    neighbors[Neighbors.Bottom_Right],
+                    neighbors[Neighbors.Top_Right.value],
+                    neighbors[Neighbors.Middle_Right.value],
+                    neighbors[Neighbors.Bottom_Right.value],
                 ]
-            case Direction.DOWN:
+            case Direction.DOWN.value:
                 options = [
-                    neighbors[Neighbors.Bottom_Left],
-                    neighbors[Neighbors.Bottom_Center],
-                    neighbors[Neighbors.Bottom_Right],
+                    neighbors[Neighbors.Bottom_Left.value],
+                    neighbors[Neighbors.Bottom_Center.value],
+                    neighbors[Neighbors.Bottom_Right.value],
                 ]
+            case Direction.FUCKING_CRAZY.value:
+                # check if there is road up
+                stoplights = self.get_neighbors(1, False, 2)
+                if (neighbors[Neighbors.Top_Center.value] is not None 
+                    and isinstance(neighbors[Neighbors.Top_Center.value], Road)
+                    and neighbors[Neighbors.Top_Center.value].direction == Direction.DOWN.value
+                    and stoplights[Neighbors.Top_Center.value] is None):
+                    self.direction = Direction.DOWN.value
+
+                elif (neighbors[Neighbors.Middle_Right.value] is not None 
+                    and isinstance(neighbors[Neighbors.Middle_Right.value], Road)
+                    and neighbors[Neighbors.Middle_Right.value].direction == Direction.LEFT.value
+                    and stoplights[Neighbors.Middle_Right.value] is None):
+                    self.direction = Direction.LEFT.value
+
+                elif (neighbors[Neighbors.Bottom_Center.value] is not None 
+                    and isinstance(neighbors[Neighbors.Bottom_Center.value], Road)
+                    and neighbors[Neighbors.Bottom_Center.value].direction == Direction.UP.value
+                    and stoplights[Neighbors.Bottom_Center.value] is None):
+                    self.direction = Direction.UP.value
+
+                elif (neighbors[Neighbors.Middle_Left.value] is not None 
+                    and isinstance(neighbors[Neighbors.Middle_Left.value], Road)
+                    and neighbors[Neighbors.Middle_Left.value].direction == Direction.RIGHT.value
+                    and stoplights[Neighbors.Middle_Left.value] is None):
+                    self.direction = Direction.RIGHT.value
+
+                else:
+                    self.direction = Direction.LEFT.value
+                
+                self.calculateRoads() # recalculate but with the actual direction
+                return # do not calculate again
+
         
         for option in options:
             if option is not None:
-                if option.type == "Road":
+                if option.state == "Road" or option.state == "Destination":
+                    # FIXME: do not allow to go to a road that is not in the flow (it likes to get into places it shouldn't)
                     self.roads.append(option)
 
-    def cookRoutes(graph, start, destination, path_empty):
+    def cookRoutes(self):
 
-        future_cells = []
-        future_cells.push(start, 0)
-        past_cells = {start: None}
-        cost_so_far = {start: 0}
+        start = self
 
-        while not future_cells.empty():
-            current = future_cells.pop()
-            
-            if current == destination:
-                break
+        for destination in destinationsList:
 
-            for next in graph.get_neighborhood(current, moore=False, include_center=False):
-                if not path_empty(current, next):  # If the path is not clear,
-                    continue
+            # Future cells is a priority queue (road, priority)
+            future_cells: list[tuple[Road, int]] = []
+            future_cells.append((start, 0))
+            past_cells: dict[Road, Road] = {} # dictionary of (current, come_from)
+            cost_so_far = {start: 0}
 
-                new_cost = cost_so_far[current] + 1
+            while len(future_cells) != 0:
+                current_packed = future_cells.pop()
+                current = current_packed[0]
+                
+                if current.pos == destination.pos:
+                    break
 
-                if next not in cost_so_far or new_cost < cost_so_far[next]:
-                    cost_so_far[next] = new_cost
-                    priority = new_cost + (abs(destination[0] - next[0]) + abs(destination[1] - next[1]))
-                    future_cells.push(next, priority)
-                    past_cells[next] = current
+                if isinstance(current, Destination):
+                    continue # ignore destinations
 
-        track = {}
-        actual = destination
-        while actual != start:
-            if actual in past_cells:
+                for next in current.roads:
+                    new_cost = cost_so_far[current] + 1
+
+                    if next not in past_cells.keys() or new_cost < cost_so_far[next]:
+                        cost_so_far[next] = new_cost
+                        priority = new_cost + (abs(destination.pos.x - next.pos.x) + abs(destination.pos.y - next.pos.y))
+                        past_cells[next] = current
+                        future_cells.append((next, priority))
+
+            route: list[Pos] = [destination.pos]
+            actual = destination
+            while actual != start:
                 last_cell = past_cells[actual]
-                track[last_cell] = actual
+                route.insert(0, last_cell.pos)
                 actual = last_cell
-            else:
-                return{}
             
-        return track
+            route.pop(0) # remove starting pos
 
-
+            # return track
+            self.routes[destination.pos.toString()] = route
+            
     def getRoute(self, destination: 'Destination') -> list[Pos]:
-        # TODO @Alex-Barr0n agrega aquí la lectura de tu A*
-        for d in destinationsList:
-            self.cookRoutes(self.board, self.pos, d.pos, self.path_empty)
+        if isinstance(destination, Destination):
+            return self.routes[destination.pos.toString()]
+        else:
+            raise TypeError("The destination is not a destination.")
 
 class Destination(Agents.StaticAgent):
     def __init__(self, board: Board, pos: Pos):
@@ -139,18 +183,36 @@ class Stoplight(Agents.SimulatedAgent):
 
 class Car(Agents.SimulatedAgent):
     destination: Destination
+
+    path: list[Pos] = []
+
     def __init__(self, board: Board):
         choices = [
             # corners of the map
             Pos(0, 0),
-            Pos(0, board.specialValues["board_height"] - 1),
-            Pos(board.specialValues["board_width"] - 1, 0),
-            Pos(board.specialValues["board_width"] - 1, board.specialValues["board_height"] - 1)
+            Pos(0, board.getHeight() - 1),
+            Pos(board.getWidth() - 1, 0),
+            Pos(board.getWidth() - 1, board.getHeight() - 1)
         ]
         spawnIn = random.choice(choices)
         super().__init__(board, spawnIn, "Car", 1, False)
 
         self.destination = random.choice(destinationsList)
 
+        self.path = self.board.agent_get(self.pos, 0, False).getRoute(self.destination)
+
     def step(self):
-        pass
+        if self.pos == self.destination.pos:
+            self.kill()
+            return
+
+        if len(self.path) == 0:
+            self.path = self.board.agent_get(self.pos, 0, False).getRoute(self.destination)
+
+        nextPos = self.path[0]
+
+        deleteme = self.board.agent_get(nextPos, 1, False)
+
+        if self.board.agent_get(nextPos, 1, False) is None:
+            self.pos = self.path.pop(0)
+            

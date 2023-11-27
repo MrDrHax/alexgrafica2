@@ -17,14 +17,12 @@ def createBoard(data: dict) -> Board.SimulatedBoard:
         Board.SimulatedBoard: The newly created board.
     '''
 
-    # TODO leer desde el mapa
-
     with open(data["map"], "r") as f:
         map = f.readlines()
         data["board_width"] = len(map[0])
         data["board_height"] = len(map)
 
-    board = Board.SimulatedBoard(data["board_width"], data["board_height"], 3)
+    board = Board.SimulatedBoard(data["board_width"] - 1, data["board_height"], 3)
 
     # collisions: map, car, stoplights
 
@@ -40,7 +38,7 @@ def createBoard(data: dict) -> Board.SimulatedBoard:
 
     # add types
     board.addColor("Road", (50, 50, 50))
-    board.addColor("Building", (0, 0, 0))
+    board.addColor("Building", (150, 255, 30))
     board.addColor("Stoplight_go", (0, 255, 0))
     board.addColor("Stoplight_stop", (255, 0, 0))
     board.addColor("Car", (0, 0, 255))
@@ -76,18 +74,26 @@ def addAgents(board: Board.SimulatedBoard):
 
         for row in range(len(mapB)):
             for col in range(len(mapB[row])):
-                pos = Pos(col, row)
+                pos = Pos(col, board.getHeight() - row - 1)
                 match mapB[row][col]:
                     case "#":
                         LocalAgents.Building(board, pos)
                     case "D":
                         LocalAgents.Destination(board, pos)
-                    case "S", "s":
-                        LocalAgents.Stoplight(board, pos)
-                    case "<", ">", "^", "v":
+                    case "S" | "s":
+                        LocalAgents.Stoplight(board, pos) # FIXME stoplight with s is vertical, and S is horizontal
+                        LocalAgents.Road(board, pos, "O")
+                    case "<" | ">" | "^" | "v":
                         LocalAgents.Road(board, pos, mapB[row][col])
     
+    # Calculate the road paths (where they can go and where they can't)
     for road in LocalAgents.roadsList:
+        road.calculateRoads()
+
+    print("Cooking routes... This might take a while.")
+    print("calculating \r(x, y)", end="")
+    for road in LocalAgents.roadsList:
+        print(f"\r({road.pos.x}, {road.pos.y})..........", end="")
         road.cookRoutes()
 
 count = 0
@@ -95,6 +101,10 @@ count = 0
 def spawnCar(board: Board.SimulatedBoard):
     global count
     count += 1
-    if count > 5:
-        LocalAgents.Car(LocalAgents.board)
-        count = 0
+    if count > 10:
+        try:
+            LocalAgents.Car(board)
+            count = 0
+        except:
+            print("No more cars can be spawned. (crash!)")
+            board.simulated = False
