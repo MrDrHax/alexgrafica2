@@ -53,6 +53,7 @@ def createBoard(data: dict) -> Board.SimulatedBoard:
 
     # add board variables
     board.specialValues["map"] = data["map"]
+    board.specialValues["spawn_rate"] = 5
 
     # collisions
     # car to stoplight
@@ -95,6 +96,9 @@ def addAgents(board: Board.SimulatedBoard):
     
     # Calculate the road paths (where they can go and where they can't)
     for road in LocalAgents.roadsList:
+        road.convertCrazyToRoad()
+
+    for road in LocalAgents.roadsList:
         road.calculateRoads()
 
     cachedRoutes = JsonSave(f"cache/{hash}.json")
@@ -109,12 +113,14 @@ def addAgents(board: Board.SimulatedBoard):
 
     cachedRoutes.save()
 
+    spawnCar(board)
+
 count = 0
 
 def spawnCar(board: Board.SimulatedBoard):
     global count
     count += 1
-    if count > 50:
+    if count > board.specialValues["spawn_rate"]:
         try:
             LocalAgents.Car(board)
             count = 0

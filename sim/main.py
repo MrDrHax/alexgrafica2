@@ -3,7 +3,7 @@ import boardMan as LocalBoard
 board_width = 21
 board_height = 21
 
-fps = 10
+fps = 60
 
 data = {
     "drawer": True,
