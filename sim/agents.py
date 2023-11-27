@@ -14,7 +14,7 @@ class Direction(Enum):
     DOWN = "v"
     LEFT = "<"
     RIGHT = ">"
-    FUCKING_CRAZY = "O"
+    UwU = "O"
 
 class Neighbors(Enum):
     Top_Left        = 0
@@ -48,7 +48,7 @@ class Road(Agents.SimulatedAgent):
         pass
 
     def convertCrazyToRoad(self):
-        if self.direction == Direction.FUCKING_CRAZY.value:
+        if self.direction == Direction.UwU.value:
             neighbors : list[Road] = self.get_neighbors(1, False, -1)
             # check if there is road up
             stoplights = self.get_neighbors(1, False, 2)
