@@ -44,12 +44,13 @@ def createBoard(data: dict) -> Board.SimulatedBoard:
     # Layers: food, obstacles, bases, roomba
 
     # add types
-    board.addColor("Road", (50, 50, 50))
-    board.addColor("Building", (150, 255, 30))
-    board.addColor("Stoplight_go", (0, 255, 0))
-    board.addColor("Stoplight_stop", (255, 0, 0))
-    board.addColor("Car", (0, 0, 255))
-    board.addColor("Destination", (255, 255, 0))
+    board.addColor("Road", (30, 30, 30))
+    board.addColor("Building", (180, 100, 255))
+    board.addColor("Stoplight_go", (0, 200, 0))
+    board.addColor("Stoplight_stop", (255, 50, 50))
+    board.addColor("Car", (40, 140, 240))
+    board.addColor("Destination", (255, 150, 0))
+
 
     # add board variables
     board.specialValues["map"] = data["map"]
