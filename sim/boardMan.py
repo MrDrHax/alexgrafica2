@@ -2,7 +2,7 @@ from fastautomata import Board, Agents, fastautomata_clib
 from fastautomata.LocalDraw import LocalDraw
 from fastautomata.ClassTypes import Pos
 import agents as LocalAgents
-import random, hashlib
+import random, hashlib # in case we need it in the future
 
 from jsonChache import JsonSave
 
@@ -23,17 +23,17 @@ def createBoard(data: dict) -> Board.SimulatedBoard:
 
     global hash
 
-    with open(data["map"], "r") as f:
+    with open(data["map"], "r") as f: #use the map provided
         map = f.readlines()
         data["board_width"] = len(map[0])
         data["board_height"] = len(map)
         hash = hashlib.md5(str(map).encode()).hexdigest()
 
-    board = Board.SimulatedBoard(data["board_width"] - 1, data["board_height"], 3)
+    board = Board.SimulatedBoard(data["board_width"] - 1, data["board_height"], 3) # separate the layers into 3 layers
 
     # collisions: map, car, stoplights
 
-    Agents.initialize_agents(board)
+    Agents.initialize_agents(board) 
 
     if "drawer" not in data:
         data["drawer"] = False
@@ -41,22 +41,21 @@ def createBoard(data: dict) -> Board.SimulatedBoard:
     if data["drawer"]:
         drawer = LocalDraw(board, 800, 800)
 
-    # Layers: food, obstacles, bases, roomba
 
     # add types
-    board.addColor("Road", (30, 30, 30))
-    board.addColor("Building", (180, 100, 255))
-    board.addColor("Stoplight_go", (0, 200, 0))
-    board.addColor("Stoplight_stop", (255, 50, 50))
-    board.addColor("Car", (40, 140, 240))
-    board.addColor("Destination", (255, 150, 0))
+    board.addColor("Road", (30, 30, 30)) # Dark gray
+    board.addColor("Building", (180, 100, 255)) # Purple
+    board.addColor("Stoplight_go", (0, 200, 0)) # Green
+    board.addColor("Stoplight_stop", (255, 50, 50)) # Red
+    board.addColor("Car", (40, 140, 240)) # Blue
+    board.addColor("Destination", (255, 150, 0)) # Orange
 
 
     # add board variables
     board.specialValues["map"] = data["map"]
     board.specialValues["spawn_rate"] = 1
 
-    # collisions
+    ### collisions
     # car to stoplight
     board.layer_collisions.addCollision(fastautomata_clib.CollisionType.TRIGGER, 1, 2)
     # car to map
@@ -90,7 +89,7 @@ def addAgents(board: Board.SimulatedBoard):
                     case "D":
                         LocalAgents.Destination(board, pos)
                     case "S" | "s":
-                        LocalAgents.Stoplight(board, pos) # FIXME stoplight with s is vertical, and S is horizontal
+                        LocalAgents.Stoplight(board, pos) # FIXME s is for horizontal roads and S is for vertical roads
                         LocalAgents.Road(board, pos, "O")
                     case "<" | ">" | "^" | "v":
                         LocalAgents.Road(board, pos, mapB[row][col])
@@ -118,7 +117,8 @@ def addAgents(board: Board.SimulatedBoard):
 
 count = 0
 
-def spawnCar(board: Board.SimulatedBoard):
+def spawnCar(board: Board.SimulatedBoard): 
+    # spawn a car every certain steps
     global count
     count += 1
     if count > board.specialValues["spawn_rate"]:
