@@ -53,7 +53,7 @@ def createBoard(data: dict) -> Board.SimulatedBoard:
 
     # add board variables
     board.specialValues["map"] = data["map"]
-    board.specialValues["spawn_rate"] = 1
+    board.specialValues["spawn_rate"] = data["spawn_rate"]
 
     ### collisions
     # car to stoplight
@@ -76,6 +76,7 @@ def addAgents(board: Board.SimulatedBoard):
     '''
     Add the agents to the board.
     '''
+    LocalAgents.boardReset(board)
     global hash
     with open(board.specialValues["map"], "r") as f:
         mapB = f.readlines()

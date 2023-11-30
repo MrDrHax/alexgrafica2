@@ -31,6 +31,11 @@ class Neighbors(Enum): #Represents neighbor positions around a central point
 destinationsList: list['Destination'] = [] # list of all destinations for future use
 roadsList: list['Road'] = [] # list of all roads for future use
 
+def boardReset(board: Board): # reset the board
+    global destinationsList, roadsList
+    destinationsList = []
+    roadsList = []
+
 class Road(Agents.SimulatedAgent):
     roads: list['Road'] = []
     direction: str
@@ -306,7 +311,7 @@ class Car(Agents.SimulatedAgent):
  
     path: list[Pos] = [] # list of positions that make up the path
 
-    lastPos: Pos
+    desiredPos: Pos
 
     desperation: int = 0 # the higher the number the more CDMX-like the driver is
 
@@ -332,7 +337,7 @@ class Car(Agents.SimulatedAgent):
 
         self.path = self.board.agent_get(self.pos, 0, False).getRoute(self.destination) # check Waze
  
-        self.lastPos = self.pos 
+        self.desiredPos = self.pos 
 
         self.desperation = 0 # relax
 
@@ -341,21 +346,29 @@ class Car(Agents.SimulatedAgent):
             self.kill() # if the bike is in a destination, then kill it... sorry :(
             return
 
-        if self.lastPos != self.pos: # if this runs, then it means someone got in their way
-            self.lastPos = self.pos
+        if self.desiredPos != self.pos: # if this runs, then it means someone got in their way
+            self.desiredPos = self.pos
+            self.path = self.board.agent_get(self.pos, 0, False).getRoute(self.destination) # recalculate just in case
+            self.desperation += 1 # GET INTENSE
+        else:
+            self.desperation = 0 # relax
+
+        if self.desperation > 1:
+            choices = []
+            for i in self.board.agent_get(self.pos, 0, False).roads:
+                if not isinstance(self.board.agent_get(self.pos, 0, False), Destination):
+                    choices.append(i.pos)
+            self.path = [random.choice(choices)]
+
+        if len(self.path) == 0: # if the next position is not in the path
             self.path = self.board.agent_get(self.pos, 0, False).getRoute(self.destination)
 
-        if len(self.path) == 0 or not (self.pos.x - 1 <= self.path[0].x <= self.pos.x + 1 and 
-        self.pos.y - 1 <= self.path[0].y <= self.pos.y + 1): # if the next position is not in the path
-            self.path = self.board.agent_get(self.pos, 0, False).getRoute(self.destination)
-
-            if len(self.path) == 0 or not (self.pos.x - 1 <= self.path[0].x <= self.pos.x + 1 and self.pos.y - 1 <= self.path[0].y <= self.pos.y + 1):
-                self.path.append(random.choice(self.board.agent_get(self.pos, 0, False).roads).pos)
-
-        if self.desperation > 3:
-            self.path = [random.choice(self.board.agent_get(self.pos, 0, False).roads).pos] # just move brute force
-
-        self.desperation += 1 # get more desperate
+            if len(self.path) == 0: # if the path is still empty
+                choices = []
+                for i in self.board.agent_get(self.pos, 0, False).roads:
+                    if not isinstance(self.board.agent_get(self.pos, 0, False), Destination):
+                        choices.append(i.pos)
+                self.path = [random.choice(choices)]
 
         nextPos = self.path[0]
 
@@ -364,10 +377,18 @@ class Car(Agents.SimulatedAgent):
             self.step()
             return
         
+        # make sure it can only move by one. 
+        if not (self.pos.x - 1 <= nextPos.x <= self.pos.x + 1 and self.pos.y - 1 <= nextPos.y <= self.pos.y + 1):
+            choices = []
+            for i in self.board.agent_get(self.pos, 0, False).roads:
+                if not isinstance(self.board.agent_get(self.pos, 0, False), Destination):
+                    choices.append(i.pos)
+            nextPos = random.choice(choices)
+            self.path = [nextPos] # reset the path and recalculate it
+        
         stoplight = self.board.agent_get(nextPos, 2, False)
 
-        if self.board.agent_get(nextPos, 1, False) is None and not (stoplight is not None and stoplight.state == "Stoplight_stop"): # if there is no one in the way
+        if not (stoplight is not None and stoplight.state == "Stoplight_stop"): # if there is no one in the way
             self.pos = self.path.pop(0)
-            self.lastPos = nextPos
-            self.desperation = 0 # relax
+            self.desiredPos = nextPos
             
