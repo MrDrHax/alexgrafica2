@@ -133,11 +133,12 @@ def spawnCar(board: Board.SimulatedBoard):
     count += 1
     if count > board.specialValues["spawn_rate"]:
         try:
-            LocalAgents.Car(board)
-            LocalAgents.Car(board)
-            LocalAgents.Car(board)
-            LocalAgents.Car(board)
             count = 0
+            LocalAgents.Car(board)
+            LocalAgents.Car(board)
+            LocalAgents.Car(board)
+            LocalAgents.Car(board)
+            print(f"Spawned 4 cars! At interval {count}")
         except:
             pass
             # print("No more cars can be spawned. (crash!)")
@@ -152,12 +153,12 @@ def spawnCar(board: Board.SimulatedBoard):
         board.simulated = False
         print(f"Simulation ended. (1000 steps), total cars arrived: {board.specialValues['total_cars_arrived']}")
 
-    if board.step_count % 200 == 0 or board.step_count == 1000:
+    if board.step_count == 1000:
 
         data = {
             "year" : 2023,
             "classroom" : 301,
-            "name" : "Alex²",
+            "name" : "Alex² corregido",
             "num_cars": board.specialValues["total_cars_arrived"],
         }
 

@@ -9,6 +9,8 @@ from jsonChache import JsonSave
 
 # TODO hacer que todos los agentes se pongan juntos de un jalon
 
+killedAgents = []
+
 class Direction(Enum): # this is the direction the road is pointing to
     UP = "^"
     DOWN = "v"
@@ -284,8 +286,8 @@ class Building(Agents.StaticAgent): # set the buildings
         super().__init__(board, pos, "Building", 0, False)
 
 class Stoplight(Agents.SimulatedAgent):
-    stoplightTime1 = 15
-    stoplightTime2 = 3
+    stoplightTime1 = 12
+    stoplightTime2 = 2
 
     def __init__(self, board: Board, pos: Pos, state: bool):
         super().__init__(board, pos, "Stoplight_go", 2, False)
@@ -365,7 +367,9 @@ class Car(Agents.SimulatedAgent):
 
     def step(self):
         if isinstance(self.board.agent_get(self.pos, 0, False), Destination):
-            self.board.specialValues["total_cars_arrived"] += 1
+            if self.getId() not in killedAgents:
+                killedAgents.append(self.getId())
+                self.board.specialValues["total_cars_arrived"] = len(killedAgents)
             self.kill() # if the bike is in a destination, then kill it... sorry :(
             return
 
