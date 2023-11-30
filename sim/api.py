@@ -4,7 +4,7 @@ from fastautomata import APIAttachment
 data = {
     "drawer": False,
     "map": "../ejemplo/2022_base.txt",
-    "spawn_rate": 0,
+    "spawn_rate": 1,
 }
 
 board = LocalBoard.createBoard(data)

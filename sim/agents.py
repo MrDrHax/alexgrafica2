@@ -343,6 +343,7 @@ class Car(Agents.SimulatedAgent):
 
     def step(self):
         if isinstance(self.board.agent_get(self.pos, 0, False), Destination):
+            self.board.specialValues["total_cars_arrived"] += 1
             self.kill() # if the bike is in a destination, then kill it... sorry :(
             return
 

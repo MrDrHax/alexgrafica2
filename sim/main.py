@@ -1,11 +1,11 @@
 import boardMan as LocalBoard
 
-fps = 300
+fps = 20
 
 data = {
     "drawer": True,
     "map": "../ejemplo/2023.txt",
-    "spawn_rate": 0,
+    "spawn_rate": 1,
 }
 
 board, drawer = LocalBoard.createBoard(data)
