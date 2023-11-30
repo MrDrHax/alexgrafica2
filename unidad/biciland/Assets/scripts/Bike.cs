@@ -49,6 +49,13 @@ public class Bike : MonoBehaviour
     public void SetDestination(Vector2Int pos){
         info.pos = pos;
 
+        var temp = tilemaps.fromxyToPos(pos.x, pos.y);
+
+        if (Vector3.Distance(transform.position, temp) < 0.1f){
+            return;
+            // Do not move if bike is already at destination
+        }
+
         destinationStart = transform.position;
         destination = tilemaps.fromxyToPos(pos.x, pos.y);
         rotationStart = transform.rotation;

@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Collections;
 using UnityEngine;
 using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
+using UnityEngine.Networking;
 
 public class BikeMannager : MonoBehaviour
 {
@@ -16,34 +19,99 @@ public class BikeMannager : MonoBehaviour
 
     public float UpdateInterval;
 
+    public string baseUrl;
+
+    private HttpClient client;
+
     public void Start(){
+        client = new HttpClient();
         bikes = new List<Bike>();
         //stoplights = new List<AgentInfo>();
 
         Bike.timeToDestination = timeToDestination;
-        Bike.timeToRotate = timeToDestination * timeToRotatePercentage;
+        Bike.timeToRotate = timeToDestination * timeToRotatePercentage;        
 
         StartCoroutine(UpdateBikesCoroutine());
     }
 
+
     private IEnumerator UpdateBikesCoroutine(){
-        
+        yield return new WaitForEndOfFrame();
+        var requestString = baseUrl + "/state";
+
+        ResponseDefault initialBoardState;
+
+        using (UnityWebRequest webRequest = UnityWebRequest.Get(requestString))
+        {
+            webRequest.SetRequestHeader("Accept", "application/json");
+            webRequest.SetRequestHeader("Content-Type", "application/json");
+
+            yield return webRequest.SendWebRequest();
+
+            if (!(webRequest.result == UnityWebRequest.Result.Success))
+            {
+                throw new Exception("Error updating board");
+            }
+
+            var content = webRequest.downloadHandler.text;
+
+            initialBoardState = JsonUtility.FromJson<ResponseDefault>(content);
+        }
+
+        var stoplights = (from agent in initialBoardState.agents.simulated
+                          where agent.state.Contains("stoplight")
+                          select agent).ToList();
+
+        var bikes = (from agent in initialBoardState.agents.simulated
+                     where agent.state.Contains("Car")
+                     select agent).ToList();
+
+        if (bikes.Count != 0){
+            List<AgentInfo> newContext = bikes;
+            UpdateBikes(newContext); 
+        }
 
         while (true){
-            if (dummyData.Count == 0){
-                break;
+            var startTime = Time.time;
+
+            requestString = baseUrl + "/step";
+
+            ResponseDefault boardState;
+
+            using (UnityWebRequest webRequest = UnityWebRequest.Post(requestString, ""))
+            {
+                webRequest.SetRequestHeader("Accept", "application/json");
+                webRequest.SetRequestHeader("Content-Type", "application/json");
+
+                yield return webRequest.SendWebRequest();
+
+                if (!(webRequest.result == UnityWebRequest.Result.Success))
+                {
+                    throw new Exception("Error updating board");
+                }
+
+                var content = webRequest.downloadHandler.text;
+
+                boardState = JsonUtility.FromJson<ResponseDefault>(content);
             }
-            List<AgentInfo> newContext = dummyData[0];
-            dummyData.RemoveAt(0);
-            UpdateBikes(newContext);
+
+            stoplights = (from agent in boardState.agents.simulated
+                          where agent.state.Contains("stoplight")
+                          select agent).ToList();
+            
+            bikes = (from agent in boardState.agents.simulated
+                        where agent.state.Contains("Car")
+                        select agent).ToList();
 
             // wait to update next call
-            yield return new WaitForSecondsRealtime(UpdateInterval);
+            yield return new WaitForSecondsRealtime(Mathf.Clamp(UpdateInterval - (Time.time - startTime), 0, UpdateInterval));
+
+            UpdateBikes(bikes);
         }
     }
 
     private IEnumerator spawnBike(AgentInfo info){
-        var spawned = GameObject.Instantiate(bikePrefab, new Vector3(info.pos.x, info.pos.y, 0), Quaternion.identity);
+        var spawned = GameObject.Instantiate(bikePrefab, tilemaps.fromxyToPos(info.pos.x, info.pos.y), Quaternion.identity);
         spawned.transform.parent = transform;
         var bike = spawned.GetComponent<Bike>();
         yield return new WaitForEndOfFrame();
