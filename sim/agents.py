@@ -284,9 +284,17 @@ class Building(Agents.StaticAgent): # set the buildings
         super().__init__(board, pos, "Building", 0, False)
 
 class Stoplight(Agents.SimulatedAgent):
+    stoplightTime1 = 15
+    stoplightTime2 = 3
+
     def __init__(self, board: Board, pos: Pos, state: bool):
         super().__init__(board, pos, "Stoplight_go", 2, False)
         self.counter = 0
+
+        self.initialState = state
+
+        # self.stoplightTime1 = random.randint(5, 10)
+        # self.stoplightTime2 = random.randint(1, 3)
 
         if state:
             self.state = "Stoplight_stop"
@@ -296,13 +304,27 @@ class Stoplight(Agents.SimulatedAgent):
     def step(self):
         self.counter += 1
 
-        # when the couter reaches 5, change the state and reset the counter
+        countAmount = 0
+
+        if self.initialState:
+            if self.state == "Stoplight_go":
+                countAmount = self.stoplightTime1
+            else:
+                countAmount = self.stoplightTime2
+        else:
+            if self.state == "Stoplight_go":
+                countAmount = self.stoplightTime2
+            else:
+                countAmount = self.stoplightTime1
+            
+
+        # when the couter reaches countamount, change the state and reset the counter
         
-        if self.counter == 5 and self.state == "Stoplight_stop": 
+        if self.counter == countAmount and self.state == "Stoplight_stop": 
             self.state = "Stoplight_go" 
             self.counter = 0
 
-        elif self.counter == 5 and self.state == "Stoplight_go":
+        elif self.counter == countAmount and self.state == "Stoplight_go":
             self.state = "Stoplight_stop"
             self.counter = 0
 
@@ -354,7 +376,7 @@ class Car(Agents.SimulatedAgent):
         else:
             self.desperation = 0 # relax
 
-        if self.desperation > 1:
+        if self.desperation > 0:
             choices = []
             for i in self.board.agent_get(self.pos, 0, False).roads:
                 if not isinstance(self.board.agent_get(self.pos, 0, False), Destination):

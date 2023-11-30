@@ -531,9 +531,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bikes: []
   bikePrefab: {fileID: 2344393235826055837, guid: 0f6c967a7f43908ffaab9255acb785e4, type: 3}
-  timeToDestination: 0.5
+  timeToDestination: 0.2
   timeToRotatePercentage: 0.5
-  UpdateInterval: 0.5
+  UpdateInterval: 0.2
   baseUrl: http://localhost:8000
 --- !u!4 &1320190752
 Transform:

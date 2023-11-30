@@ -4,9 +4,16 @@ from fastautomata.ClassTypes import Pos
 import agents as LocalAgents
 import random, hashlib # in case we need it in the future
 
+import requests
+import json
+
 from jsonChache import JsonSave
 
 hash = ""
+
+
+url = "http://52.1.3.19:8585/api/"
+endpoint = "attempts"
 
 def createBoard(data: dict) -> Board.SimulatedBoard:
     '''
@@ -77,6 +84,7 @@ def addAgents(board: Board.SimulatedBoard):
     '''
     Add the agents to the board.
     '''
+    board.specialValues["total_cars_arrived"] = 0
     LocalAgents.boardReset(board)
     global hash
     with open(board.specialValues["map"], "r") as f:
@@ -113,7 +121,7 @@ def addAgents(board: Board.SimulatedBoard):
 
     print("\nDone! Saving routes...")
 
-    cachedRoutes.save()
+    # cachedRoutes.save()
 
     spawnCar(board)
 
@@ -126,7 +134,38 @@ def spawnCar(board: Board.SimulatedBoard):
     if count > board.specialValues["spawn_rate"]:
         try:
             LocalAgents.Car(board)
+            LocalAgents.Car(board)
+            LocalAgents.Car(board)
+            LocalAgents.Car(board)
             count = 0
         except:
-            print("No more cars can be spawned. (crash!)")
-            board.simulated = False
+            pass
+            # print("No more cars can be spawned. (crash!)")
+            # board.simulated = False
+    
+    # try:
+    #     LocalAgents.Car(board)
+    # except:
+    #     pass
+
+    if board.step_count == 1000:
+        board.simulated = False
+        print(f"Simulation ended. (1000 steps), total cars arrived: {board.specialValues['total_cars_arrived']}")
+
+    if board.step_count % 200 == 0 or board.step_count == 1000:
+
+        data = {
+            "year" : 2023,
+            "classroom" : 301,
+            "name" : "Alex²",
+            "num_cars": board.specialValues["total_cars_arrived"],
+        }
+
+        headers = {
+            "Content-Type": "application/json"
+        }
+
+        response = requests.post(url+endpoint, data=json.dumps(data), headers=headers)
+
+        if not response.status_code == 200:
+            print("Error, plz debug api!")

@@ -5,7 +5,7 @@ fps = 20
 data = {
     "drawer": True,
     "map": "../ejemplo/2023.txt",
-    "spawn_rate": 1,
+    "spawn_rate": 2,
 }
 
 board, drawer = LocalBoard.createBoard(data)
