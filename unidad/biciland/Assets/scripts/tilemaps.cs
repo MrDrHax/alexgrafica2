@@ -8,17 +8,19 @@ public class tilemaps : MonoBehaviour
     public Vector3 gridStartingPos;
     public Vector2 tileSize;
 
+    public static tilemaps singleton;
+
     public TileGrid grid;
 
     // roads
-    public GameObject roadPrefab;
     public GameObject buildingPrefab;
-    public GameObject stoplightPrefab;
     public GameObject destinationPrefab;
 
     public GameObject parents;
 
     public void Start(){
+        singleton = this;
+
         grid = new TileGrid(25, 25);
 
         string data = "v<<<<<<<<<<<<<<<<<s<<<<<\nvv<<<<<<<<<<<<<<<<s<<<<^\nvv#D#########vv#SS###D^^\nvv###########vv#^^####^^\nvv##########Dvv#^^D###^^\nvv#D#########vv#^^####^^\nvv<<<<<<s<<<<vv#^^####^^\nvv<<<<<<s<<<<vv#^^####^^\nvv####SS#####vv#^^####^^\nvvD##D^^####Dvv#^^####^^\nvv####^^#####vv#^^D###^^\nSS####^^#####vv#^^####^^\nvvs<<<<<<<<<<<<<<<<<<<^^\nvvs<<<<<<<<<<<<<<<<<<<^^\nvv##########vv###^^###^^\nvv>>>>>>>>>>>>>>>>>>>s^^\nvv>>>>>>>>>>>>>>>>>>>s^^\nvv####vv##D##vv#^^####SS\nvv####vv#####vv#^^####^^\nvv####vv#####vv#^^###D^^\nvv###Dvv####Dvv#^^####^^\nvv####vv#####vv#^^####^^\nvv####SS#####SS#^^#D##^^\nv>>>>s>>>>>>s>>>>>>>>>^^\n>>>>>s>>>>>>s>>>>>>>>>>^";
@@ -30,14 +32,17 @@ public class tilemaps : MonoBehaviour
     public void createFromData(){
         for (int x = 0; x < grid.width; x++){
             for (int y = 0; y < grid.height; y++){
-                char c = grid.getTile(x, y);
+                char c = grid.getTile(x, grid.height - y - 1);
                 switch (c) {
+                    case '^':
+                    case '<':
+                    case '>':
                     case 'v':
-                        createRoadTile(x, y);
+                        createRoadTile(x, y, c);
                         break;
                     case 's':
-                        createStoplightTile(x, y);
-                        createRoadTile(x, y);
+                    case 'S':
+                        createStoplightTile(x, y, c);
                         break;
                     case 'D':
                         createDestinationTile(x, y);
@@ -45,21 +50,13 @@ public class tilemaps : MonoBehaviour
                     case '#':
                         createBuildingTile(x, y);
                         break;
-                    case '^':
-                        createRoadTile(x, y);
-                        break;
-                    case 'S':
-                        createStoplightTile(x, y);
-                        createRoadTile(x, y);
-                        break;
                 }
             }
         }
     }
 
-    public void createRoadTile(int x, int y){
-        var spawned = GameObject.Instantiate(roadPrefab, fromxyToPos(x, y), Quaternion.identity);
-        spawned.transform.parent = parents.transform;
+    public void createRoadTile(int x, int y, char c){
+        RoadPlacer.loadAndPlace(c, parents.transform, fromxyToPos(x, y));
     }
 
     public void createBuildingTile(int x, int y){
@@ -67,9 +64,9 @@ public class tilemaps : MonoBehaviour
         spawned.transform.parent = parents.transform;
     }
 
-    public void createStoplightTile(int x, int y){
-        var spawned = GameObject.Instantiate(stoplightPrefab, fromxyToPos(x, y), Quaternion.identity);
-        spawned.transform.parent = parents.transform;
+    public void createStoplightTile(int x, int y, char c){
+        createRoadTile(x, y, c);
+        // TODO add stoplight object
     }
 
     public void createDestinationTile(int x, int y){
@@ -77,8 +74,8 @@ public class tilemaps : MonoBehaviour
         spawned.transform.parent = parents.transform;
     }
 
-    public Vector3 fromxyToPos(int x, int y){
-        return new Vector3(gridStartingPos.x + x * tileSize.x, gridStartingPos.y, gridStartingPos.z + y * tileSize.y);
+    public static Vector3 fromxyToPos(int x, int y){
+        return new Vector3(singleton.gridStartingPos.x + x * singleton.tileSize.x, singleton.gridStartingPos.y, singleton.gridStartingPos.z + y * singleton.tileSize.y);
     }
 }
 
