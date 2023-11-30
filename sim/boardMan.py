@@ -89,14 +89,14 @@ def addAgents(board: Board.SimulatedBoard):
                     case "D":
                         LocalAgents.Destination(board, pos)
                     case "S" | "s":
-                        LocalAgents.Stoplight(board, pos) # FIXME s is for horizontal roads and S is for vertical roads
+                        LocalAgents.Stoplight(board, pos, mapB[row][col] == 'S')
                         LocalAgents.Road(board, pos, "O")
                     case "<" | ">" | "^" | "v":
                         LocalAgents.Road(board, pos, mapB[row][col])
     
     # Calculate the road paths (where they can go and where they can't)
     for road in LocalAgents.roadsList:
-        road.convertCrazyToRoad()
+        road.convertToRoad()
 
     for road in LocalAgents.roadsList:
         road.calculateRoads()

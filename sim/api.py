@@ -13,9 +13,7 @@ data = {
 
 board = LocalBoard.createBoard(data)
 
-drawer = APIAttachment(board)
-
-board.specialValues["draw_framerate"] = 1 / fps
+drawer = APIAttachment.API(board)
 
 drawer.run()
 

@@ -283,9 +283,12 @@ class Stoplight(Agents.SimulatedAgent):
         super().__init__(board, pos, "Stoplight_go", 2, False)
         self.counter = 0
 
+        if state:
+            self.state = "Stoplight_stop"
+        else:
+            self.state = "Stoplight_go"
+
     def step(self):
-        self.state = "Stoplight_go"
-        self.state = "Stoplight_stop"
         self.counter += 1
 
         # when the couter reaches 5, change the state and reset the counter
@@ -360,8 +363,10 @@ class Car(Agents.SimulatedAgent):
             self.path.pop(0)
             self.step()
             return
+        
+        stoplight = self.board.agent_get(nextPos, 2, False)
 
-        if self.board.agent_get(nextPos, 1, False) is None: # if there is no one in the way
+        if self.board.agent_get(nextPos, 1, False) is None and not (stoplight is not None and stoplight.state == "Stoplight_stop"): # if there is no one in the way
             self.pos = self.path.pop(0)
             self.lastPos = nextPos
             self.desperation = 0 # relax
