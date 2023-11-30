@@ -27,37 +27,7 @@ public class BikeMannager : MonoBehaviour
     }
 
     private IEnumerator UpdateBikesCoroutine(){
-        List<List<AgentInfo>> dummyData = new List<List<AgentInfo>>() { 
-            new List<AgentInfo>() {
-                new AgentInfo() { id = 1, pos = new Vector2Int(0, 0) },
-            },
-
-            new List<AgentInfo>() {
-                new AgentInfo() { id = 1, pos = new Vector2Int(0, 1) },
-                new AgentInfo() { id = 2, pos = new Vector2Int(0, 0) },
-            },
-
-            new List<AgentInfo>() {
-                new AgentInfo() { id = 1, pos = new Vector2Int(0, 2) },
-                new AgentInfo() { id = 2, pos = new Vector2Int(1, 1) },
-                new AgentInfo() { id = 3, pos = new Vector2Int(0, 0) },
-            },
-
-            new List<AgentInfo>() {
-                new AgentInfo() { id = 2, pos = new Vector2Int(0, 2) },
-                new AgentInfo() { id = 3, pos = new Vector2Int(0, 1) },
-            },
-
-            new List<AgentInfo>() {
-                new AgentInfo() { id = 3, pos = new Vector2Int(0, 2) },
-            },
-
-            new List<AgentInfo>() {
-                new AgentInfo() { id = 3, pos = new Vector2Int(0, 3) },
-            },
-
-            new List<AgentInfo>() 
-        };
+        
 
         while (true){
             if (dummyData.Count == 0){
