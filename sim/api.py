@@ -1,3 +1,11 @@
+"""
+Andrea Alexandra Barrón Córdova A01783126
+Alejandro Fernández del Valle Herrera A01024998
+
+Fast-automata's API
+"""
+
+
 import boardMan as LocalBoard
 from fastautomata import APIAttachment
 

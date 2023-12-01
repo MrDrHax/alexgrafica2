@@ -1,3 +1,10 @@
+"""
+Andrea Alexandra Barrón Córdova A01783126
+Alejandro Fernández del Valle Herrera A01024998
+
+Main controller for ciclists.
+"""
+
 from typing import Any
 from fastautomata import Agents
 from fastautomata.Board import SimulatedBoard as Board

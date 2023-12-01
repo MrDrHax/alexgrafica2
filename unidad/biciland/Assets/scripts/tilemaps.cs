@@ -1,3 +1,10 @@
+/*
+Andrea Alexandra Barrón Córdova A01783126
+Alejandro Fernández del Valle Herrera A01024998
+
+Code for tile creation.
+*/
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -29,6 +36,7 @@ public class tilemaps : MonoBehaviour
         createFromData();
     }
 
+    //Create tiles according to the grid data
     public void createFromData(){
         for (int x = 0; x < grid.width; x++){
             for (int y = 0; y < grid.height; y++){
@@ -55,20 +63,24 @@ public class tilemaps : MonoBehaviour
         }
     }
 
+    // Create a road tile based on the direction
     public void createRoadTile(int x, int y, char c){
         RoadPlacer.loadAndPlace(c, parents.transform, fromxyToPos(x, y));
     }
 
+    // Create buildings
     public void createBuildingTile(int x, int y){
         var spawned = GameObject.Instantiate(buildingPrefab, fromxyToPos(x, y), Quaternion.identity);
         spawned.transform.parent = parents.transform;
     }
 
+    // Create a stoplight tile
     public void createStoplightTile(int x, int y, char c){
         createRoadTile(x, y, c);
         // TODO add stoplight object
     }
 
+    // Convert coordinates to destinations
     public void createDestinationTile(int x, int y){
         var spawned = GameObject.Instantiate(destinationPrefab, fromxyToPos(x, y), Quaternion.identity);
         spawned.transform.parent = parents.transform;

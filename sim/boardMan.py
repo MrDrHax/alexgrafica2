@@ -1,3 +1,18 @@
+"""
+Andrea Alexandra Barrón Córdova A01783126
+Alejandro Fernández del Valle Herrera A01024998
+
+Create a new board with the data provided.
+
+    Parameters:
+        data (dict): The data to create the board with. Must contain the following required parameters:
+            - board_width (int): The width of the board.
+            - board_height (int): The height of the board.
+
+    Returns:
+        Board.SimulatedBoard: The newly created board.
+"""
+
 from fastautomata import Board, Agents, fastautomata_clib
 from fastautomata.LocalDraw import LocalDraw
 from fastautomata.ClassTypes import Pos
@@ -16,17 +31,6 @@ url = "http://52.1.3.19:8585/api/"
 endpoint = "attempts"
 
 def createBoard(data: dict) -> Board.SimulatedBoard:
-    '''
-    Create a new board with the data provided.
-
-    Parameters:
-        data (dict): The data to create the board with. Must contain the following required parameters:
-            - board_width (int): The width of the board.
-            - board_height (int): The height of the board.
-
-    Returns:
-        Board.SimulatedBoard: The newly created board.
-    '''
 
     global hash
 

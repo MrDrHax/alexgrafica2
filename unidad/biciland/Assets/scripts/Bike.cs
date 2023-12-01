@@ -1,3 +1,10 @@
+/*
+Andrea Alexandra Barrón Córdova A01783126
+Alejandro Fernández del Valle Herrera A01024998
+
+Moves the bike towards its destination
+*/
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -30,7 +37,7 @@ public class Bike : MonoBehaviour
     }
 
     public void Update(){
-        // move towards destination only if bike has not arrived yet
+        // Move towards destination only if not there
         if (Vector3.Distance(transform.position, destination) > 0.001f){
             transform.position = Vector3.Lerp(destinationStart, destination, Mathf.Clamp01((Time.time - timeToDestinationStart) / timeToDestination));
             anim.SetBool("moving", true);
@@ -39,7 +46,7 @@ public class Bike : MonoBehaviour
             anim.SetBool("moving", false);
         }
 
-        // rotate towards destination only if bike is not rotated yet
+        // Rotate towards destination only if not done
         if (Quaternion.Angle(transform.rotation, rotation) > 1f){
             var lerpValue = Mathf.Clamp01((Time.time - timeToDestinationStart) / timeToRotate);
             transform.rotation = Quaternion.Lerp(rotationStart, rotation, lerpValue);
@@ -56,6 +63,7 @@ public class Bike : MonoBehaviour
             // Do not move if bike is already at destination
         }
 
+        / Destination and rotation
         destinationStart = transform.position;
         destination = tilemaps.fromxyToPos(pos.x, pos.y);
         rotationStart = transform.rotation;
@@ -66,6 +74,6 @@ public class Bike : MonoBehaviour
 
     public void kill(){
         // TODO add death animation
-        Destroy(gameObject);
+        Destroy(gameObject); // :(
     }
 }

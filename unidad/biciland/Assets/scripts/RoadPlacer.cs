@@ -1,3 +1,10 @@
+/*
+Andrea Alexandra Barrón Córdova A01783126
+Alejandro Fernández del Valle Herrera A01024998
+
+Code used to load the appropriate road prefab based on the given direction
+*/
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -30,6 +37,7 @@ public static class RoadPlacer
                 break;
         }
 
+        //Instantiate the roads
         var placed = GameObject.Instantiate(roadPrefab, position, Quaternion.identity);
         placed.transform.parent = parent;
         placed.transform.name = position.ToString();

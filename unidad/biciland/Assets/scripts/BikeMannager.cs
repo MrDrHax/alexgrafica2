@@ -1,3 +1,8 @@
+/*
+Andrea Alexandra Barrón Córdova A01783126
+Alejandro Fernández del Valle Herrera A01024998
+*/
+
 using System;
 using System.Collections.Generic;
 using System.Collections;
@@ -9,25 +14,24 @@ using UnityEngine.Networking;
 
 public class BikeMannager : MonoBehaviour
 {
-    public List<Bike> bikes;
-    //public List<AgentInfo> stoplights;
+    public List<Bike> bikes; // Active bikes
 
     public GameObject bikePrefab;
 
     public float timeToDestination;
     public float timeToRotatePercentage;
 
-    public float UpdateInterval;
+    public float UpdateInterval; // Time before the new state
 
-    public string baseUrl;
+    public string baseUrl; 
 
     private HttpClient client;
 
     public void Start(){
         client = new HttpClient();
         bikes = new List<Bike>();
-        //stoplights = new List<AgentInfo>();
 
+        //Corrutines for bike update
         Bike.timeToDestination = timeToDestination;
         Bike.timeToRotate = timeToDestination * timeToRotatePercentage;        
 
@@ -36,6 +40,7 @@ public class BikeMannager : MonoBehaviour
 
 
     private IEnumerator UpdateBikesCoroutine(){
+        //Periodically update bikes
         yield return new WaitForEndOfFrame();
         var requestString = baseUrl + "/state";
 
@@ -50,6 +55,7 @@ public class BikeMannager : MonoBehaviour
 
             if (!(webRequest.result == UnityWebRequest.Result.Success))
             {
+                //Check for succesful request
                 throw new Exception("Error updating board");
             }
 
@@ -57,6 +63,8 @@ public class BikeMannager : MonoBehaviour
 
             initialBoardState = JsonUtility.FromJson<ResponseDefault>(content);
         }
+
+        //Separate stoplights and bikes
 
         var stoplights = (from agent in initialBoardState.agents.simulated
                           where agent.state.Contains("stoplight")
@@ -67,6 +75,7 @@ public class BikeMannager : MonoBehaviour
                      select agent).ToList();
 
         if (bikes.Count != 0){
+            //update bikes if there are any
             List<AgentInfo> newContext = bikes;
             UpdateBikes(newContext); 
         }
@@ -74,7 +83,7 @@ public class BikeMannager : MonoBehaviour
         while (true){
             var startTime = Time.time;
 
-            requestString = baseUrl + "/step";
+            requestString = baseUrl + "/step"; //Request the next step
 
             ResponseDefault boardState;
 
@@ -111,6 +120,7 @@ public class BikeMannager : MonoBehaviour
     }
 
     private IEnumerator spawnBike(AgentInfo info){
+        // Coroutine for spawning a bike based on agent
         var spawned = GameObject.Instantiate(bikePrefab, tilemaps.fromxyToPos(info.pos.x, info.pos.y), Quaternion.identity);
         spawned.transform.parent = transform;
         var bike = spawned.GetComponent<Bike>();
